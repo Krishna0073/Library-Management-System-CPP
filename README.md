@@ -1,26 +1,39 @@
-# Library Management System (C++)
+# 📚 Library Management System (C++)
 
-A simple console-based Library Management System developed in C++.
+A console-based Library Management System built using C++.
 
 ## Features
 
-- Add Book
-- Show All Books
-- Search Book
-- Issue Book
-- Return Book
-- Update Book
-- Delete Book
+- ➕ Add Book
+- 📖 Show All Books
+- 🔍 Search Book
+- 📤 Issue Book
+- 📥 Return Book
+- ✏️ Update Book
+- ❌ Delete Book
 
 ## Technologies Used
 
 - C++
 - Arrays
 - Functions
+- Loops
+- Conditional Statements
 
 ## How to Run
 
-Compile and run `library_management_system.cpp` using any C++ compiler.
+1. Compile the program:
+   g++ library_management_system.cpp -o library
+
+2. Run:
+   ./library
+
+## Future Improvements
+
+- File handling
+- Login system
+- STL vectors
+- Database integration
 
 ## Author
 
