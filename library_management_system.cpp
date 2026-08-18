@@ -1,325 +1,298 @@
-#include<iostream>
+#include <iostream>
+#include <fstream>
+#include <vector>
+#include <iomanip>
+
 using namespace std;
 
-// Arrays to store book details
-string bookID[20], bookName[20], author[20], category[20], status[20];
-int total = 0;
-
-// Function Prototypes
-void addBook()
+class Book
 {
-    int n;
+private:
+    int id;
+    string title;
+    string author;
+    int quantity;
 
-    cout<<"\nHow many books do you want to add? ";
-    cin>>n;
+public:
+    Book() {}
 
-    if(total+n>20)
+    Book(int i, string t, string a, int q)
     {
-        cout<<"\nLibrary is Full!\n";
-        return;
+        id = i;
+        title = t;
+        author = a;
+        quantity = q;
     }
 
-    for(int i=0;i<n;i++)
+    int getId() const { return id; }
+    string getTitle() const { return title; }
+    string getAuthor() const { return author; }
+    int getQuantity() const { return quantity; }
+
+    void issueBook()
     {
-        cout<<"\nBook "<<i+1<<endl;
+        if(quantity > 0)
+            quantity--;
+    }
 
-        cout<<"Book ID: ";
-        cin>>bookID[total];
+    void returnBook()
+    {
+        quantity++;
+    }
 
+    void display() const
+    {
+        cout << left
+             << setw(8) << id
+             << setw(25) << title
+             << setw(20) << author
+             << quantity << endl;
+    }
+
+    string toFile() const
+    {
+        return to_string(id) + "|" + title + "|" + author + "|" + to_string(quantity);
+    }
+
+    void fromFile(string line)
+    {
+        int p1 = line.find("|");
+        int p2 = line.find("|", p1 + 1);
+        int p3 = line.find("|", p2 + 1);
+
+        id = stoi(line.substr(0, p1));
+        title = line.substr(p1 + 1, p2 - p1 - 1);
+        author = line.substr(p2 + 1, p3 - p2 - 1);
+        quantity = stoi(line.substr(p3 + 1));
+    }
+};
+
+class Library
+{
+private:
+    vector<Book> books;
+
+public:
+    Library()
+    {
+        loadBooks();
+    }
+
+    ~Library()
+    {
+        saveBooks();
+    }
+
+    void addBook()
+    {
+        int id, qty;
+        string title, author;
+
+        cout << "\nBook ID: ";
+        cin >> id;
         cin.ignore();
 
-        cout<<"Book Name: ";
-        getline(cin,bookName[total]);
+        cout << "Title: ";
+        getline(cin, title);
 
-        cout<<"Author Name: ";
-        getline(cin,author[total]);
+        cout << "Author: ";
+        getline(cin, author);
 
-        cout<<"Category: ";
-        getline(cin,category[total]);
+        cout << "Quantity: ";
+        cin >> qty;
 
-        status[total]="Available";
+        books.push_back(Book(id, title, author, qty));
 
-        total++;
+        cout << "\nBook Added Successfully!\n";
     }
 
-    cout<<"\nBook Added Successfully!\n";
-}
-void showBooks()
-{
-    if(total == 0)
+    void viewBooks()
     {
-        cout << "\nNo books available in the library!" << endl;
-        return;
-    }
-
-    cout << "\n========== Library Books ==========\n";
-
-    for(int i = 0; i < total; i++)
-    {
-        cout << "\nBook " << i + 1 << endl;
-        cout << "Book ID   : " << bookID[i] << endl;
-        cout << "Book Name : " << bookName[i] << endl;
-        cout << "Author    : " << author[i] << endl;
-        cout << "Category  : " << category[i] << endl;
-        cout << "Status    : " << status[i] << endl;
-        cout << "-----------------------------------" << endl;
-    }
-}
-void searchBook()
-{
-    if(total == 0)
-    {
-        cout << "\nNo books available in the library!" << endl;
-        return;
-    }
-
-    string id;
-    bool found = false;
-
-    cout << "\nEnter Book ID to Search: ";
-    cin >> id;
-
-    for(int i = 0; i < total; i++)
-    {
-        if(bookID[i] == id)
+        if(books.empty())
         {
-            found = true;
-
-            cout << "\n========== Book Found ==========\n";
-            cout << "Book ID   : " << bookID[i] << endl;
-            cout << "Book Name : " << bookName[i] << endl;
-            cout << "Author    : " << author[i] << endl;
-            cout << "Category  : " << category[i] << endl;
-            cout << "Status    : " << status[i] << endl;
-
-            break;
+            cout << "\nNo Books Available.\n";
+            return;
         }
+
+        cout << "\n-------------------------------------------------------------\n";
+        cout << left
+             << setw(8) << "ID"
+             << setw(25) << "TITLE"
+             << setw(20) << "AUTHOR"
+             << "QTY\n";
+        cout << "-------------------------------------------------------------\n";
+
+        for(Book b : books)
+            b.display();
     }
 
-    if(found == false)
+    void searchBook()
     {
-        cout << "\nBook not found!" << endl;
-    }
-}
-void issueBook()
-{
-    if(total == 0)
-    {
-        cout << "\nNo books available in the library!" << endl;
-        return;
-    }
+        int id;
+        cout << "\nEnter Book ID: ";
+        cin >> id;
 
-    string id;
-    bool found = false;
-
-    cout << "\nEnter Book ID to Issue: ";
-    cin >> id;
-
-    for(int i = 0; i < total; i++)
-    {
-        if(bookID[i] == id)
+        for(Book b : books)
         {
-            found = true;
-
-            if(status[i] == "Available")
+            if(b.getId() == id)
             {
-                status[i] = "Issued";
-                cout << "\nBook Issued Successfully!" << endl;
+                cout << "\nBook Found\n";
+                b.display();
+                return;
             }
-            else
-            {
-                cout << "\nBook is already issued!" << endl;
-            }
-
-            break;
         }
+
+        cout << "\nBook Not Found.\n";
     }
 
-    if(found == false)
+    void issueBook()
     {
-        cout << "\nBook not found!" << endl;
-    }
-}
-void returnBook()
-{
-    if(total == 0)
-    {
-        cout << "\nNo books available in the library!" << endl;
-        return;
-    }
+        int id;
+        cout << "\nEnter Book ID: ";
+        cin >> id;
 
-    string id;
-    bool found = false;
-
-    cout << "\nEnter Book ID to Return: ";
-    cin >> id;
-
-    for(int i = 0; i < total; i++)
-    {
-        if(bookID[i] == id)
+        for(Book &b : books)
         {
-            found = true;
-
-            if(status[i] == "Issued")
+            if(b.getId() == id)
             {
-                status[i] = "Available";
-                cout << "\nBook Returned Successfully!" << endl;
-            }
-            else
-            {
-                cout << "\nThis book is already available!" << endl;
-            }
+                if(b.getQuantity() == 0)
+                {
+                    cout << "\nBook Out of Stock.\n";
+                    return;
+                }
 
-            break;
+                b.issueBook();
+                cout << "\nBook Issued Successfully.\n";
+                return;
+            }
         }
+
+        cout << "\nBook Not Found.\n";
     }
 
-    if(found == false)
+    void returnBook()
     {
-        cout << "\nBook not found!" << endl;
-    }
-}
-void updateBook()
-{
-    if(total == 0)
-    {
-        cout << "\nNo books available!" << endl;
-        return;
-    }
+        int id;
+        cout << "\nEnter Book ID: ";
+        cin >> id;
 
-    string id;
-    bool found = false;
-
-    cout << "\nEnter Book ID to Update: ";
-    cin >> id;
-
-    for(int i = 0; i < total; i++)
-    {
-        if(bookID[i] == id)
+        for(Book &b : books)
         {
-            found = true;
-
-            cout << "\nEnter New Book ID: ";
-            cin >> bookID[i];
-
-            cin.ignore();
-
-            cout << "Enter New Book Name: ";
-            getline(cin, bookName[i]);
-
-            cout << "Enter New Author Name: ";
-            getline(cin, author[i]);
-
-            cout << "Enter New Category: ";
-            getline(cin, category[i]);
-
-            cout << "\nBook Updated Successfully!" << endl;
-            break;
-        }
-    }
-
-    if(found == false)
-    {
-        cout << "\nBook not found!" << endl;
-    }
-}
-void deleteBook()
-{
-    if(total == 0)
-    {
-        cout << "\nNo books available!" << endl;
-        return;
-    }
-
-    string id;
-    bool found = false;
-
-    cout << "\nEnter Book ID to Delete: ";
-    cin >> id;
-
-    for(int i = 0; i < total; i++)
-    {
-        if(bookID[i] == id)
-        {
-            found = true;
-
-            for(int j = i; j < total - 1; j++)
+            if(b.getId() == id)
             {
-                bookID[j] = bookID[j + 1];
-                bookName[j] = bookName[j + 1];
-                author[j] = author[j + 1];
-                category[j] = category[j + 1];
-                status[j] = status[j + 1];
+                b.returnBook();
+                cout << "\nBook Returned Successfully.\n";
+                return;
             }
-
-            total--;
-
-            cout << "\nBook Deleted Successfully!" << endl;
-            break;
         }
+
+        cout << "\nBook Not Found.\n";
     }
 
-    if(found == false)
+    void deleteBook()
     {
-        cout << "\nBook not found!" << endl;
+        int id;
+        cout << "\nEnter Book ID: ";
+        cin >> id;
+
+        for(int i = 0; i < books.size(); i++)
+        {
+            if(books[i].getId() == id)
+            {
+                books.erase(books.begin() + i);
+                cout << "\nBook Deleted Successfully.\n";
+                return;
+            }
+        }
+
+        cout << "\nBook Not Found.\n";
     }
-}
+
+    void saveBooks()
+    {
+        ofstream file("books.txt");
+
+        for(Book b : books)
+            file << b.toFile() << endl;
+
+        file.close();
+    }
+
+    void loadBooks()
+    {
+        ifstream file("books.txt");
+
+        if(!file)
+            return;
+
+        string line;
+
+        while(getline(file, line))
+        {
+            Book b;
+            b.fromFile(line);
+            books.push_back(b);
+        }
+
+        file.close();
+    }
+};
+
 int main()
 {
+    Library library;
+
     int choice;
 
-    while(true)
+    do
     {
-        cout<<"\n=====================================\n";
-        cout<<"      LIBRARY MANAGEMENT SYSTEM\n";
-        cout<<"=====================================\n";
-        cout<<"1. Add Book\n";
-        cout<<"2. Show All Books\n";
-        cout<<"3. Search Book\n";
-        cout<<"4. Issue Book\n";
-        cout<<"5. Return Book\n";
-        cout<<"6. Update Book\n";
-        cout<<"7. Delete Book\n";
-        cout<<"8. Exit\n";
-        cout<<"Enter your choice: ";
-        cin>>choice;
+        cout << "\n========== LIBRARY MANAGEMENT SYSTEM ==========\n";
+        cout << "1. Add Book\n";
+        cout << "2. View Books\n";
+        cout << "3. Search Book\n";
+        cout << "4. Issue Book\n";
+        cout << "5. Return Book\n";
+        cout << "6. Delete Book\n";
+        cout << "7. Exit\n";
+
+        cout << "\nEnter Choice: ";
+        cin >> choice;
 
         switch(choice)
         {
             case 1:
-                addBook();
+                library.addBook();
                 break;
 
             case 2:
-                showBooks();
+                library.viewBooks();
                 break;
 
             case 3:
-                searchBook();
+                library.searchBook();
                 break;
 
             case 4:
-                issueBook();
+                library.issueBook();
                 break;
 
             case 5:
-                returnBook();
+                library.returnBook();
                 break;
 
             case 6:
-                updateBook();
+                library.deleteBook();
                 break;
 
             case 7:
-                deleteBook();
+                cout << "\nThank You!\n";
                 break;
 
-            case 8:
-                cout<<"\nThank You!\n";
-                return 0;
-
             default:
-                cout<<"\nInvalid Choice!\n";
+                cout << "\nInvalid Choice!\n";
         }
-    }
+
+    } while(choice != 7);
+
+    return 0;
 }
